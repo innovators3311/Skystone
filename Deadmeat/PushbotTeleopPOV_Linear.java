@@ -112,32 +112,31 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
                 robot.drive((float)turn*-1,(float)drive*-1,false, false);
 
             }
-            //////pickup
+
+            //This is the unclog button
             if (gamepad1.right_bumper)
             {
-             this.robot.pickup.setPower(-1);
+             this.robot.pickup.setPower(1);
+             this.robot.beater.setPower(-1);
             }
+            //This is the pickup
             else if (gamepad1.left_bumper)
             {
-             this.robot.pickup.setPower(1);
+             this.robot.pickup.setPower(-1);
+             this.robot.beater.setPower(1);
             }
             else
             {
              this.robot.pickup.setPower(0);
+             this.robot.beater.setPower(0);
+
             }
 
-            if (gamepad1.left_bumper)
-            {
-                this.robot.beater.setPower(1);
-            }
-            else if (gamepad1.right_bumper)
-            {
-                this.robot.beater.setPower(-1);
-            }
-            else if (runtime.seconds()<5)
-            {
-                this.robot.beater.setPower(0);
-            }
+
+//            if (runtime.seconds()<5);
+//            {
+//                this.robot.beater.setPower(0);
+//            }
 
 
             if (gamepad1.y)
@@ -147,7 +146,7 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
                 {
                     runtime.reset();
                 }
-                else if (runtime.seconds()>5)
+                else if (runtime.seconds()>3)
                 {
                     this.robot.pickup.setPower(-1);
                 }
