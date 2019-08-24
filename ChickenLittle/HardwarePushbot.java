@@ -111,10 +111,10 @@ public class HardwarePushbot
         rb_target=rb;
         lf_target=lf;
         lb_target=lb;
-//        rightFrontMotor.setPower(rf);
-//        leftFrontMotor.setPower(lf);
-//        rightBackMotor.setPower(rb);
-//        leftBackMotor.setPower(lb);
+        rightFrontMotor.setPower(rf);
+        leftFrontMotor.setPower(lf);
+        rightBackMotor.setPower(rb);
+        leftBackMotor.setPower(lb);
     }
 
 

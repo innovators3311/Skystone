@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.ChickenLittle;
+package org.firstinspires.ftc.teamcode.Skystone.ChickenLittle;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -50,7 +50,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class PushbotTeleopPOV_Linear extends LinearOpMode {
 
     /* Declare OpMode members. */
-    HardwarePushbot robot           = new HardwarePushbot();   // Use a Pushbot's hardware
+    org.firstinspires.ftc.teamcode.ChickenLittle.HardwarePushbot robot           = new org.firstinspires.ftc.teamcode.ChickenLittle.HardwarePushbot();   // Use a Pushbot's hardware
 
     @Override
     public void runOpMode() {
@@ -73,6 +73,8 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
         // Wait for the game to start (driver presses PLAY)
         waitForStart();
 
+        float max_speed=1;
+
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
@@ -88,6 +90,18 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
                 left_back = drive - turn;
                 right_back = drive + turn;
 
+            if (gamepad1.a)
+            {
+                max_speed=1;
+                telemetry.addData("speed", "%.1f speed", max_speed);
+                telemetry.update();
+            }
+            else if (gamepad1.b)
+            {
+                max_speed= (float) 0.5;
+                telemetry.addData("speed", "%.1f speed", max_speed);
+                telemetry.update();
+            }
 
                 if (gamepad1.right_trigger>.5&&gamepad1.left_trigger>.5) {
                     //if both are pressed then it stops
@@ -132,61 +146,25 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
             max = Math.max(Math.abs(left_front), Math.abs(right_front));
             max = Math.max(max, Math.abs(right_back));
             max = Math.max(max, Math.abs(left_back));
-                if (max > 1.0) {
+                if (max > 1)
+                {
                     left_front /= max;
                     right_front /= max;
                     left_back /= max;
                     right_back /= max;
                 }
+                    left_front *= max_speed;
+                    right_front *= max_speed;
+                    left_back *= max_speed;
+                    right_back *= max_speed;
+
+
                 robot.setMotors(left_front,left_back,right_front,right_back);
 
-//                if (max > 1.0) {
-
-//            if (gamepad1.right_trigger>.5)
-//            {
-//                robot.setMotors(-.5,.5,.5,-.5);
-//            }
-//            else if(gamepad1.left_trigger>.5)
-//            {
-//                robot.setMotors(.5,-.5,-.5,.5);
-//            }
-//            else
-//             {
-//                drive = -gamepad1.left_stick_y;
-//                turn = gamepad1.right_stick_x;
-//
-//            // Combine drive and turn for blended motion.
-//                left = drive - turn;
-//                right = drive + turn;
-//
-//            // Normalize the values so neither exceed +/- 1.0
-//                max = Math.max(Math.abs(left), Math.abs(right));
-//                if (max > 1.0) {
-//                 left /= max;
-//                 right /= max;
-            //   left = left/max
-//                 }
-//
-//            // Output the safe vales to the motor drives.
-//                robot.setMotors(left, left, right, right);
-//            }
-//            // Use gamepad left & right Bumpers to open and close the claw
-//            if (gamepad1.right_bumper)
-//                clawOffset += CLAW_SPEED;
-//            else if (gamepad1.left_bumper)
-//                clawOffset -= CLAW_SPEED;
-//
-//            // Use gamepad buttons to move arm up (Y) and down (A)
-//            if (gamepad1.y)
-//                robot.leftArm.setPower(robot.ARM_UP_POWER);
-//            else if (gamepad1.a)
-//                robot.leftArm.setPower(robot.ARM_DOWN_POWER);
-//            else
-//                robot.leftArm.setPower(0.0);
-
-            // Send telemetry message to signify robot running;
-        telemetry.addData("left",  "%.2f", left);
-        telemetry.addData("right", "%.2f", right);
+        telemetry.addData("left_front",  "%.2f", left_front);
+        telemetry.addData("right_front", "%.2f", right_front);
+        telemetry.addData("left_back",  "%.2f", left_back);
+        telemetry.addData("right_back", "%.2f", right_back);
         telemetry.update();
 
         // Pace this loop so jaw action is reasonable speed.
