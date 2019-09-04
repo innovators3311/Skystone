@@ -83,6 +83,10 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
             // This way it's also easy to just drive straight, or just turn.
                 drive = -gamepad1.left_stick_y;
                 turn = gamepad1.right_stick_x;
+//                if (gamepad1.left_stick_y)
+//                {
+//
+//                }
 
             // Combine drive and turn for blended motion.
                 left_front = drive - turn;
@@ -143,15 +147,14 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
 
 
 
-            max = Math.max(Math.abs(left_front), Math.abs(right_front));
-            max = Math.max(max, Math.abs(right_back));
-            max = Math.max(max, Math.abs(left_back));
-                if (max > 1)
+
+
+                if (max_speed > 1)
                 {
-                    left_front /= max;
-                    right_front /= max;
-                    left_back /= max;
-                    right_back /= max;
+                    left_front /= max_speed;
+                    right_front /= max_speed;
+                    left_back /= max_speed;
+                    right_back /= max_speed;
                 }
                     left_front *= max_speed;
                     right_front *= max_speed;
