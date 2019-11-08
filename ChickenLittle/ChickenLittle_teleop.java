@@ -29,6 +29,7 @@
 
 package org.firstinspires.ftc.teamcode.Skystone.ChickenLittle;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -49,7 +50,8 @@ import static org.firstinspires.ftc.teamcode.roverRuckus.PushbotTeleopPOV_Linear
  */
 
 @TeleOp(name="Chicken_Little", group="Pushbot")
-public class PushbotTeleopPOV_Linear extends LinearOpMode {
+@Disabled
+public class ChickenLittle_teleop extends LinearOpMode {
 
     /* Declare OpMode members. */
     HardwarePushbot robot           = new HardwarePushbot();   // Use a Pushbot's hardware
