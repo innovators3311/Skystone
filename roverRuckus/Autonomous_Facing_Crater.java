@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.roverRuckus;
+package org.firstinspires.ftc.teamcode.Skystone.roverRuckus;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -174,10 +174,10 @@ public class Autonomous_Facing_Crater extends LinearOpMode {
         robot.FlowAngleTime(60,-.25f,2.8f,this);
         robot.FlowAngleTime(140,-.3f,2,this);
         robot.FlowAngleDistanceAway(135,-.3f,40,this);//base
-        robot.Claim();
-        robot.carwash(.95f);
-        robot.FlowAngleStrafeTime(true,.3f,.6f,this);
-        robot.carwash(0f);
+//        robot.Claim();
+//        robot.carwash(.95f);
+//        robot.FlowAngleStrafeTime(true,.3f,.6f,this);
+//        robot.carwash(0f);
         robot.FlowAngleTime(130,.5f,4.8f,this);
     }
 
@@ -193,12 +193,12 @@ public class Autonomous_Facing_Crater extends LinearOpMode {
         robot.FlowAngleTime(80,-.3f,3,this,true);
         robot.FlowAngleTime(140,-.3f,2.1f,this,true);
         robot.FlowAngleDistanceAway(135,-.3f,20,this);//base
-        robot.Claim();
-        robot.Claim();
-        robot.carwash(.95f);
-        robot.FlowAngleStrafeTime(true,.3f,.3f,this);
-        robot.carwash(0);
-        robot.FlowAngleTime(135,.55f,4.2f,this);
+//        robot.Claim();
+//        robot.Claim();
+//        robot.carwash(.95f);
+//        robot.FlowAngleStrafeTime(true,.3f,.3f,this);
+//        robot.carwash(0);
+//        robot.FlowAngleTime(135,.55f,4.2f,this);
 
     }
 
@@ -214,13 +214,13 @@ public class Autonomous_Facing_Crater extends LinearOpMode {
         robot.FlowAngleTime(70,-.3f,3,this,true);
         robot.FlowAngleTime(140,-.4f,2.1f,this,true);
         robot.FlowAngleDistanceAway(135,-.5f,40,this);//base
-        robot.Claim();
-        robot.Claim();
-        robot.Claim();
-        robot.carwash(.95f);
-        robot.FlowAngleStrafeTime(true,.3f,.3f,this);
-        robot.carwash(0);
-        robot.FlowAngleTime(135,.5f,4.5f,this);
+//        robot.Claim();
+//        robot.Claim();
+//        robot.Claim();
+//        robot.carwash(.95f);
+//        robot.FlowAngleStrafeTime(true,.3f,.3f,this);
+//        robot.carwash(0);
+//        robot.FlowAngleTime(135,.5f,4.5f,this);
         }
 
 //MEAN CRATER

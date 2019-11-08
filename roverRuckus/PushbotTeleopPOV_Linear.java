@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.roverRuckus;
+package org.firstinspires.ftc.teamcode.Skystone.roverRuckus;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -115,7 +115,7 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
             telemetry.addData("gamepad","amepad2.right_stick_y"+ gamepad2.right_stick_y);
             telemetry.addData("aaaaaaarrrrrmmm","stringpuller"+robot.accesseries.stringpuller.getCurrentPosition());
             telemetry.addData("ArmAngle", "ArmAngleStatus"+robot.accesseries.ArmAngleStatus);
-            telemetry.addData("difference","stringpuller"+robot.accesseries.stringpuller.getCurrentPosition()+"   tgt:"+robot.accesseries.getArmInOutTargetPosition());
+//            telemetry.addData("difference","stringpuller"+robot.accesseries.stringpuller.getCurrentPosition()+"   tgt:"+robot.accesseries.getArmInOutTargetPosition());
 
             telemetry.update();
 
@@ -353,7 +353,7 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
 
                 if(bpp==BeaterPickupPosition.bottom){
                     //pulls extender arm out
-                    robot.accesseries.setArmInOutTargetPosition((int)HardwarePushbot.ARM_IN/4);
+//                    robot.accesseries.setArmInOutTargetPosition((int)HardwarePushbot.ARM_IN/4);
 
 //                    robot.accesseries.beater.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 //                    robot.accesseries.stringpuller.setTargetPosition((int) HardwarePushbot.ARM_IN/4);
@@ -370,7 +370,7 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
 //                    robot.accesseries.stringpuller.setTargetPosition((int) HardwarePushbot.ARM_OUT);
 //                    robot.accesseries.stringpuller.setPower(Math.abs(.99f));
                     robot.accesseries.MoveBeaterToPosistion(HardwarePushbot.TOP_POSITION,this);
-                    robot.accesseries.setArmInOutTargetPosition((int)HardwarePushbot.ARM_OUT);
+//                    robot.accesseries.setArmInOutTargetPosition((int)HardwarePushbot.ARM_OUT);
                     PickupStateString="TOP";
                     bpp=BeaterPickupPosition.top;
                 }
@@ -409,7 +409,7 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
 //                    robot.accesseries.stringpuller.setTargetPosition((int) HardwarePushbot.ARM_IN/4);
 //                    robot.accesseries.stringpuller.setPower(Math.abs(-.99f));
                     robot.accesseries.MoveBeaterToPosistion(HardwarePushbot.MIDDLE_POSITION,this);
-                    robot.accesseries.setArmInOutTargetPosition((int)HardwarePushbot.ARM_IN/4);
+//                    robot.accesseries.setArmInOutTargetPosition((int)HardwarePushbot.ARM_IN/4);
 
                     PickupStateString="MIDDLE";
                     bpp=BeaterPickupPosition.middle;
@@ -420,7 +420,7 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
 //                    robot.accesseries.stringpuller.setPower(Math.abs(.99f));
                     //dumping position without arm extending - operator will do it manually
                     robot.accesseries.MoveBeaterToPosistion(HardwarePushbot.BOTTOM_POSITION,this);
-                    robot.accesseries.setArmInOutTargetPosition((int)HardwarePushbot.ARM_OUT);
+//                    robot.accesseries.setArmInOutTargetPosition((int)HardwarePushbot.ARM_OUT);
                     PickupStateString="BOTTOM";
                     bpp=BeaterPickupPosition.bottom;
                 }
@@ -444,11 +444,11 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
     private void BeaterPower() {
         if(gamepad2.left_stick_y>.8){
            int poop= robot.accesseries.stringpuller.getCurrentPosition()+280;
-           robot.accesseries.setArmInOutTargetPosition(poop);
+//           robot.accesseries.setArmInOutTargetPosition(poop);
         }
         else if(gamepad2.left_stick_y<-.8){
             int poop= robot.accesseries.stringpuller.getCurrentPosition()-280;
-            robot.accesseries.setArmInOutTargetPosition(poop);
+//            robot.accesseries.setArmInOutTargetPosition(poop);
         }
         else{
 //            if(!robot.accesseries.beater.isBusy()){

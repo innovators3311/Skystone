@@ -27,7 +27,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.roverRuckus;
+package org.firstinspires.ftc.teamcode.Skystone.roverRuckus;
 
 import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -163,13 +163,13 @@ public class Autonomous_Facing_Base extends LinearOpMode {
         robot.FlowAngleDistanceAway(45,-.3f,10,this);//travels until the robot is 10cm away from the sidewall - to not scratch it
         robot.FlowAngleStrafeTime(true,.3f,1.6f,this); //strafe until in front of gold particle - the center of our robot lines up with it
        // robot.FlowAngleDistanceAway(22,-.45f,10,this);//travels until the robot is 10cm away from the sidewall - to not scratch it
-        // robot.FlowAngleTime(45,-.6f,2.3f,this,true);
-        robot.Claim(); ////beater motor spins backward to spit our claimer
-        robot.carwash(.95f);
-        robot.FlowAngleTime(-52,.4f,1.15f,this,true);//to crater
-        robot.FlowAngleStrafeTime(false,-.5f,1.3f,this);//strafe until in front of gold particle - the center of our robot lines up with it
-        robot.carwash(0);
-        robot.FlowAngleTime(-50,.5f,3.4f,this); //to crater
+//        // robot.FlowAngleTime(45,-.6f,2.3f,this,true);
+//        robot.Claim(); ////beater motor spins backward to spit our claimer
+//        robot.carwash(.95f);
+//        robot.FlowAngleTime(-52,.4f,1.15f,this,true);//to crater
+//        robot.FlowAngleStrafeTime(false,-.5f,1.3f,this);//strafe until in front of gold particle - the center of our robot lines up with it
+//        robot.carwash(0);
+//        robot.FlowAngleTime(-50,.5f,3.4f,this); //to crater
 
 
 //        robot.Claim(); //beater motor spins backward to spit our claimer
@@ -193,13 +193,13 @@ public class Autonomous_Facing_Base extends LinearOpMode {
         robot.FlowAngleTime(0,-.3f,2.1f,this); //drives toward base
         robot.FlowAngleDistanceAway(42,-.45f,10,this);//travels until the robot is 10cm away from the sidewall - to not scratch it
        // robot.FlowAngleTime(45,-.6f,2.3f,this,true);
-        robot.Claim(); ////beater motor spins backward to spit our claimer
-        robot.carwash(.95f);
-        robot.FlowAngleStrafeTime(true,.3f,1.5f,this); //strafe until in front of gold particle - the center of our robot lines up with it
-        robot.FlowAngleTime(-52,.4f,1.2f,this,true);//to crater
-        robot.FlowAngleStrafeTime(false,.3f,1.5f,this);
-        robot.carwash(0);
-        robot.FlowAngleTime(-50,.65f,3.4f,this); //to crater
+//        robot.Claim(); ////beater motor spins backward to spit our claimer
+//        robot.carwash(.95f);
+//        robot.FlowAngleStrafeTime(true,.3f,1.5f,this); //strafe until in front of gold particle - the center of our robot lines up with it
+//        robot.FlowAngleTime(-52,.4f,1.2f,this,true);//to crater
+//        robot.FlowAngleStrafeTime(false,.3f,1.5f,this);
+//        robot.carwash(0);
+//        robot.FlowAngleTime(-50,.65f,3.4f,this); //to crater
       //  robot.FlowAngleTime(-55,.85f,1.88f,this); //to crater
 
     }
@@ -215,12 +215,12 @@ public class Autonomous_Facing_Base extends LinearOpMode {
         //hit wall
         robot.FlowAngleDistanceAway(-45,-.3f,10,this);//travels until the robot is 10cm away from the sidewall - to not scratch it
       //  robot.FlowAngleTime(45,-.6f,2.3f,this,true);//to base
-        robot.Claim();
-        robot.carwash(.95f);
-        robot.FlowAngleTime(-52,.4f,7.2f,this,true);//to ctater
-        robot.FlowAngleStrafeTime(false,-.5f,.4f,this);//strafe until in front of gold particle - the center of our robot lines up with it
-        robot.carwash(0);
-        robot.FlowAngleTime(-50,.3f,1.5f,this);
+//        robot.Claim();
+//        robot.carwash(.95f);
+//        robot.FlowAngleTime(-52,.4f,7.2f,this,true);//to ctater
+//        robot.FlowAngleStrafeTime(false,-.5f,.4f,this);//strafe until in front of gold particle - the center of our robot lines up with it
+//        robot.carwash(0);
+//        robot.FlowAngleTime(-50,.3f,1.5f,this);
 //        robot.FlowAngleTime(-60,.3f,3.2f,this); //to crater
     }
 }

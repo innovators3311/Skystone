@@ -32,6 +32,8 @@ package org.firstinspires.ftc.teamcode.Skystone.ChickenLittle;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
+import static org.firstinspires.ftc.teamcode.roverRuckus.PushbotTeleopPOV_Linear.CORRECTION_SCALE;
+
 /**
  * This OpMode uses the common Pushbot hardware class to define the devices on the robot.
  * All device access is managed through the HardwarePushbot class.
@@ -50,21 +52,20 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 public class PushbotTeleopPOV_Linear extends LinearOpMode {
 
     /* Declare OpMode members. */
-    org.firstinspires.ftc.teamcode.ChickenLittle.HardwarePushbot robot           = new org.firstinspires.ftc.teamcode.ChickenLittle.HardwarePushbot();   // Use a Pushbot's hardware
+    HardwarePushbot robot           = new HardwarePushbot();   // Use a Pushbot's hardware
 
     @Override
     public void runOpMode() {
-        double left=0;
-        double right=0;
         double left_front,right_front,left_back,right_back;
         double drive;
         double turn;
-        double max;
+
+
 
         /* Initialize the hardware variables.
          * The init() method of the hardware class does all the work here
          */
-        robot.init(hardwareMap);
+        robot.init(hardwareMap,this);
 
         // Send telemetry message to signify robot waiting;
         telemetry.addData("Say", "Hello Driver");    //
@@ -83,28 +84,26 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
             // This way it's also easy to just drive straight, or just turn.
                 drive = -gamepad1.left_stick_y;
                 turn = gamepad1.right_stick_x;
-//                if (gamepad1.left_stick_y)
-//                {
-//
-//                }
 
             // Combine drive and turn for blended motion.
-                left_front = drive - turn;
-                right_front = drive + turn;
-                left_back = drive - turn;
-                right_back = drive + turn;
+                left_front = drive + turn;
+                right_front = drive - turn;
+                left_back = drive + turn;
+                right_back = drive - turn;
 
             if (gamepad1.a)
             {
                 max_speed=1;
-                telemetry.addData("speed", "%.1f speed", max_speed);
-                telemetry.update();
+              //  telemetry.addData("speed", "%.1f speed", max_speed);
+             //   telemetry.update();
             }
+                //  telemetry.addData("speed", "%.1f speed", max_speed);
+                //   telemetry.update();
             else if (gamepad1.b)
             {
                 max_speed= (float) 0.5;
-                telemetry.addData("speed", "%.1f speed", max_speed);
-                telemetry.update();
+               // telemetry.addData("speed", "%.1f speed", max_speed);
+              //  telemetry.update();
             }
 
                 if (gamepad1.right_trigger>.5&&gamepad1.left_trigger>.5) {
@@ -117,10 +116,10 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
                 }
                 else if (gamepad1.right_trigger>.5)
                 {// strafe right
-                    left_front-=.5;
-                    left_back+=.5;
-                    right_front+=.5;
-                    right_back-=.5;
+                    left_front+=.5;
+                    left_back-=.5;
+                    right_front-=.5;
+                    right_back+=.5;
 
 
                     //get rid o' trn
@@ -132,10 +131,10 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
                 }
                else if (gamepad1.left_trigger>.5)
                 {// strafe left
-                    left_front+=.5;
-                    left_back-=.5;
-                    right_front-=.5;
-                    right_back+=.5;
+                    left_front-=.5;
+                    left_back+=.5;
+                    right_front+=.5;
+                    right_back-=.5;
 
                   // get rid of thus
                     left_front+=turn;
@@ -148,13 +147,26 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
 
 
 
+                double localMax= left_back;
+            if(left_front>localMax)
+            {
+                localMax=left_front;
+            }
+            if(right_front>localMax)
+            {
+                localMax=right_front;
+            }
+            if(right_back>localMax)
+            {
+                localMax=right_back;
+            }
 
-                if (max_speed > 1)
+                if (localMax> 1)
                 {
-                    left_front /= max_speed;
-                    right_front /= max_speed;
-                    left_back /= max_speed;
-                    right_back /= max_speed;
+                    left_front /= localMax;
+                    right_front /= localMax;
+                    left_back /= localMax;
+                    right_back /= localMax;
                 }
                     left_front *= max_speed;
                     right_front *= max_speed;
@@ -164,13 +176,107 @@ public class PushbotTeleopPOV_Linear extends LinearOpMode {
 
                 robot.setMotors(left_front,left_back,right_front,right_back);
 
-        telemetry.addData("left_front",  "%.2f", left_front);
-        telemetry.addData("right_front", "%.2f", right_front);
-        telemetry.addData("left_back",  "%.2f", left_back);
-        telemetry.addData("right_back", "%.2f", right_back);
-        telemetry.update();
+//        telemetry.addData("left_front",  "%.2f", left_front);
+//        telemetry.addData("right_front", "%.2f", right_front);
+//        telemetry.addData("left_back",  "%.2f", left_back);
+//        telemetry.addData("right_back", "%.2f", right_back);
+//        telemetry.update();
 
         // Pace this loop so jaw action is reasonable speed.
+
+
+
+
+
+
+
+
+
     }
     }
+    boolean left_trigger_down=false,right_trigger_down=false;
+    double compass_ideal_heading=-1;
+    double drive;
+    double turn;
+    double left=0;
+    double right=0;
+    double max;
+
+    private void crabbing_right()
+    {
+        if(right_trigger_down==false)
+        {
+            compass_ideal_heading=robot.getAngle();
+        }
+        //scale angle difference
+        double angle_difference=(compass_ideal_heading-robot.getAngle())/ CORRECTION_SCALE;
+        robot.setMotors(.7-angle_difference, -.7-angle_difference, -.7+angle_difference, .7+angle_difference);
+        left_trigger_down=false;
+        right_trigger_down=true;
+        telemetry.addData("RIGHT !!!!! compass_ideal_heading", "right trigger hit",compass_ideal_heading,robot.getAngle());
+        telemetry.update();
+    }
+
+    private void crabbing_left()
+    {
+        if(left_trigger_down==false)
+        {
+            compass_ideal_heading=robot.getAngle();
+        }
+        double angle_difference=(compass_ideal_heading-robot.getAngle())/CORRECTION_SCALE;
+        robot.setMotors(.7-angle_difference, -.7-angle_difference, -.7+angle_difference, .7+angle_difference);
+        left_trigger_down=true;
+        right_trigger_down=false;
+        telemetry.addData("LEFT !!!!  compass_ideal_heading", "%.2f",angle_difference);
+        telemetry.update();
+    }
+
+    private void normal_driving() {
+        //not crabbing - lets drive (no stick means stop)
+        left_trigger_down=false;
+        right_trigger_down=false;
+
+        drive = gamepad1.left_stick_y;
+        turn  =  gamepad1.right_stick_x;
+
+        if(gamepad1.left_stick_y>0){
+            turn*=-.25;
+        }
+
+//If driving backwards, we change the direction of the turns
+        if(gamepad1.left_stick_y<0){
+        }
+        // Combine drive and turn for blended motion.
+        left  = drive+turn;
+        right = drive-turn;
+
+        // Normalize the values so neither exceed +/- 1.0
+        max = Math.max(Math.abs(left), Math.abs(right));
+        if (max > 1.0)
+        {
+            left /= max;
+            right /= max;
+        }
+
+        // Output the safe vales to the motor drives.
+        robot.setMotors(left, right);
+    }
+
+    private void Driving() {
+        if(gamepad1.left_trigger>.5)//crab left
+        {
+            crabbing_left();
+        }
+        else if(gamepad1.right_trigger>.5)//crab right
+        {
+            crabbing_right();
+
+        }
+        else
+        {
+            normal_driving();
+        }//done driving
+    }
+
+
 }

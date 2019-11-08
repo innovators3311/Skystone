@@ -27,13 +27,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.firstinspires.ftc.teamcode.ChickenLittle;
+package org.firstinspires.ftc.teamcode.Skystone.ChickenLittle;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
+import java.util.Set;
 
 /**
  * This is NOT an opmode.
@@ -66,29 +75,70 @@ public class HardwarePushbot
     /* local OpMode members. */
     HardwareMap hwMap           =  null;
     private ElapsedTime period  = new ElapsedTime();
+    boolean userubberbanding = true;
+    LinearOpMode parent;
+    final double MTP = 2;
+    double MinSleepPeriod = .01;
+    double SPM = .1;//MTP/MinSleepPeriod;
+    double globalAngle;
+    Orientation             lastAngles = new Orientation();
+    BNO055IMU imu;
 
+
+
+
+    public boolean setMotors(double Left, double Right)
+    {
+        if(leftFrontMotor==null ||rightFrontMotor==null )
+            return false;
+        leftFrontMotor.setPower(Left);
+        leftBackMotor.setPower(Left);
+
+        rightFrontMotor.setPower(Right);
+        rightBackMotor.setPower(Right);
+        return true;
+    }
     /* Constructor */
     public HardwarePushbot(){
 
     }
 
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap) {
+    public void init(HardwareMap ahwMap, LinearOpMode parentIN) {
         // Save reference to Hardware map
         hwMap = ahwMap;
-
+        parent = parentIN;
         // Define and Initialize Motors
-        rightFrontMotor  = hwMap.get(DcMotor.class, "right_front");
-        leftFrontMotor = hwMap.get(DcMotor.class, "left_front");
-        rightBackMotor    = hwMap.get(DcMotor.class, "right_back");
-        leftBackMotor   = hwMap.get (DcMotor.class, "left_back");
+        rightFrontMotor  = hwMap.get(DcMotor.class, "rf");
+        leftFrontMotor = hwMap.get(DcMotor.class, "lf");
+        rightBackMotor    = hwMap.get(DcMotor.class, "rb");
+        leftBackMotor   = hwMap.get (DcMotor.class, "lb");
 
         leftFrontMotor.setDirection(DcMotor.Direction.REVERSE); // Set to REVERSE if using AndyMark motors
         rightFrontMotor.setDirection(DcMotor.Direction.FORWARD);// Set to FORWARD if using AndyMark motors
         leftBackMotor.setDirection(DcMotor.Direction.REVERSE); // Set to REVERSE if using AndyMark motors
         rightBackMotor.setDirection(DcMotor.Direction.FORWARD);// Set to FORWARD if using AndyMark motors
 
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
 
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = false;
+
+        // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
+        // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
+        // and named "imu".
+        imu = hwMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+        //Vertical brain
+        //            int AXIS_MAP_CONFIG_BYTE = 0x18;
+//            imu.write8(BNO055IMU.Register.OPR_MODE, BNO055IMU.SensorMode.CONFIG.bVal & 0x0F);
+//            Thread.sleep(100);
+//            imu.write8(BNO055IMU.Register.AXIS_MAP_CONFIG, AXIS_MAP_CONFIG_BYTE & 0x0F);
+//            imu.write8(BNO055IMU.Register.AXIS_MAP_SIGN, AXIS_MAP_CONFIG_BYTE & 0x0F);
+//            imu.write8(BNO055IMU.Register.OPR_MODE, BNO055IMU.SensorMode.IMU.bVal & 0x0F);
+//            Thread.sleep(100);
         // Set all motors to zero power
         leftFrontMotor.setPower(0);
         rightFrontMotor.setPower(0);
@@ -101,26 +151,178 @@ public class HardwarePushbot
         rightFrontMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         leftBackMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         rightBackMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
+        new Thread(new rubberbandRunnable(parent)).start();
+
     }
 
 
+    class rubberbandRunnable  implements Runnable {
+
+
+        LinearOpMode parent2;
+
+        boolean keepRunning=true;
+        public rubberbandRunnable(LinearOpMode parentIN) {
+            parent2 = parentIN;
+
+        }
+
+
+        private void rubberMotor(DcMotor motor, double target)
+        {
+            double difference= target-motor.getPower();
+            //
+            if (difference<0)
+            {
+                if (difference<-1*SPM)
+                {
+                    float NewMotorSettings= (float)(motor.getPower()-SPM);
+                    motor.setPower(NewMotorSettings);
+                }
+                else
+                {
+                    motor.setPower(target);
+                }
+            }
+            else
+            {
+                if (difference>SPM)
+                {
+                    float NewMotorSettings= (float)(motor.getPower()+SPM);
+                    motor.setPower(NewMotorSettings);
+                }
+                else
+                {
+                    motor.setPower(target);
+                }
+            }
+        }
+
+        @Override
+        public void run() {
+            int counter = 0;
+
+
+            parent.waitForStart();
+            parent.telemetry.addData("Thread","about to start");
+            parent.telemetry.update();
+
+            while (keepRunning)
+            {
+                parent.telemetry.addData("Thread","running");
+                parent.telemetry.update();
+                rubberMotor(leftFrontMotor, lf_target);
+                rubberMotor(rightFrontMotor, rf_target);
+                rubberMotor(leftBackMotor,lb_target);
+                rubberMotor(rightBackMotor, rb_target);
+
+                try {
+                    Thread.sleep((int)(1000*MinSleepPeriod));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+
+//                if (parent!=null)
+//                {
+//                    parent.telemetry.addData("","c i "+rf_target);
+//
+//                    parent.telemetry.update();
+//                }
+
+            }
+
+            parent.telemetry.addData("Thread","about to die");
+            parent.telemetry.update();
+        }
+
+   }
 
 
     public void setMotors (double lf, double lb, double rf, double rb){
-        rf_target=rf;
-        rb_target=rb;
-        lf_target=lf;
-        lb_target=lb;
-        rightFrontMotor.setPower(rf);
-        leftFrontMotor.setPower(lf);
-        rightBackMotor.setPower(rb);
-        leftBackMotor.setPower(lb);
+        if (userubberbanding= true)
+        {
+            rf_target = rf;
+            rb_target = rb;
+            lf_target = lf;
+            lb_target = lb;
+        }
+        else
+        {
+            rightFrontMotor.setPower(rf);
+            leftFrontMotor.setPower(lf);
+            rightBackMotor.setPower(rb);
+            leftBackMotor.setPower(lb);
+        }
     }
 
+    public void FlowAngleStrafeTime( boolean StrafeLeft, float speed, float time_s, LinearOpMode opmode)
+    {
+        double compass_ideal_heading=-1;
+        ElapsedTime     runtime = new ElapsedTime();
+        runtime.reset();
+        compass_ideal_heading=getAngle();
+        while (opmode.opModeIsActive() && (runtime.seconds() < time_s)) {
 
+            if(StrafeLeft) {
+                double angle_difference = (compass_ideal_heading - getAngle()) / 200.0;
+                leftBackMotor.setPower(.5 - angle_difference);
+                leftFrontMotor.setPower(-.5 - angle_difference);
+                rightBackMotor.setPower(-.5 + angle_difference);
+                rightFrontMotor.setPower(.5 + angle_difference);
+            }
 
+            else{
+                double angle_difference=(compass_ideal_heading-getAngle())/200.0;
+                leftBackMotor.setPower(-.5-angle_difference);
+                leftFrontMotor.setPower(.5-angle_difference);
+                rightBackMotor.setPower(.5+angle_difference);
+                rightFrontMotor.setPower(-.5+angle_difference);
+            }
+            opmode.idle();
+        }
+        setMotors(0,0);
+    }
+    public double getAngle()
+    {
+        try{
+            // We experimentally determined the Z axis is the axis we want to use for heading angle.
+            // We have to process the angle because the imu works in euler angles so the Z axis is
+            // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
+            // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
 
+            Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
 
+            double deltaAngle = angles.firstAngle - lastAngles.firstAngle;
 
+            if (deltaAngle < -180)
+                deltaAngle += 360;
+            else if (deltaAngle > 180)
+                deltaAngle -= 360;
+
+            globalAngle += deltaAngle;
+
+            lastAngles = angles;
+
+            return globalAngle;}
+
+        catch(Exception e){
+            return 0;
+        }
+    }
+
+    public void TurnToAngle(float targetangle, float speed) {
+
+    }
+    public void Drive(float distance, float angle, float speed){
+
+    }
+    public void Extend(float length, float speed, float time){
+
+    }
+    public void StrafeToAngle(float distance, float angle){
+
+    }
  }
 

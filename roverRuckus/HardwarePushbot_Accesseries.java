@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.roverRuckus;
+package org.firstinspires.ftc.teamcode.Skystone.roverRuckus;
 
 import android.util.Log;
 
@@ -21,12 +21,12 @@ public class HardwarePushbot_Accesseries {
     private DigitalChannel TopSwitch;                // Device Object
     DigitalChannel BottomSwitch;                // Device Object
     DigitalChannel color;                    // Device Object
-//    private int ArmInOutTargetPosition=0;
-//    private final int ArmInOutBuffer=50;
-//    private final float ArmInOutPower = .9f;
-//    public String ArmAngleStatus = "";
-//    public CRServo new_beater;
-//    public CRServo slowBeater;
+    private int ArmInOutTargetPosition=0;
+    private final int ArmInOutBuffer=50;
+    private final float ArmInOutPower = .9f;
+    public String ArmAngleStatus = "";
+    public CRServo new_beater;
+    public CRServo slowBeater;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //    public void setArmInOutTargetPosition(int NewArmInOut_specificcountswhatever){
 //        ArmInOutTargetPosition=NewArmInOut_specificcountswhatever;
@@ -232,7 +232,7 @@ public class HardwarePushbot_Accesseries {
             BottomSwitch = hwMap.get(DigitalChannel.class, "liftmin"); //port three
             TopSwitch.setMode(DigitalChannel.Mode.INPUT);          // Set the direction of each channel
             BottomSwitch.setMode(DigitalChannel.Mode.INPUT);          // Set the direction of each channel
-            ArmInOutPositionsThread=new Thread(new ArmInOutRunnable(parent));
+//            ArmInOutPositionsThread=new Thread(new ArmInOutRunnable(parent));
             ArmInOutPositionsThread.start();
        // } catch (Exception e) {
 
