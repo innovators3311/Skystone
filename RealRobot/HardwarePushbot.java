@@ -21,7 +21,7 @@
  * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWE
  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
@@ -32,12 +32,12 @@ package org.firstinspires.ftc.teamcode.Skystone.RealRobot;
 import android.util.Log;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.IntegratingGyroscope;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.ReadWriteFile;
@@ -50,13 +50,11 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import org.firstinspires.ftc.robotcore.external.navigation.VuforiaLocalizer;
-import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.robotcore.external.tfod.TFObjectDetector;
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil;
 
 
 import java.io.File;
-import java.util.List;
 
 /**
  * This is NOT an opmode.
@@ -74,7 +72,10 @@ import java.util.List;
  * Servo channel:  Servo to open left claw:  "left_hand"
  * Servo channel:  Servo to open right claw: "right_hand"
  */
-
+enum Direction
+{
+    LEFT, CENTER, RIGHT;
+}
 public class HardwarePushbot
 {
     private static final String VUFORIA_KEY = "AXTF/LP/////AAABmS/x33JhJkAynrU/ggLtC+5u5UI4i6vN/nZ7SlkLSyJY0DibuV6b/MqkjFB3Bg8y1BxP7ODkNV31aw64HP19MxyVGC4mMf7bTAnb7ORwgRebgahyUezUi+z3LCQO0FrciWVbFG8MrlupKvtZllPW3pH5pO0OJljn7kA1jjuKpQhikG6+TUOIAejFIPHLxGUyBk6i+w3MhxN6hFbX5NMjHbFIV4fbTc0yC8CUK6mSXdlrMt4dE89taWBOSaP5UOXNTbws5N5+84U4eJFjFi1AFsNJOUDYC4XQOoIjH9lb9pCy8p7egNJXJoOPeooW7cfpqRcfLnOetqNpdvgTadNE2ARLaL6pGBR6iXq6FM0sYzvV";
@@ -90,16 +91,23 @@ public class HardwarePushbot
     public static final int ARM_IN=0;
     public static final int ARM_OUT=-1680;
     public LinearOpMode OpMode;
-    ModernRoboticsI2cRangeSensor rangeSensor;
-
+    private DistanceSensor FrontRange, LeftRange, RightRange;
+    Rev2mDistanceSensor sensorTimeOfFlightFront;
+    Rev2mDistanceSensor sensorTimeOfFlightRightSide;
+    Rev2mDistanceSensor sensorTimeOfFlightLeftSide;
+    RevBlinkinLedDriver blinkinLedDriver;
+    RevBlinkinLedDriver.BlinkinPattern pattern;
+    Servo  LeftServo;
+    Servo  RightServo;
 
     /* Public OpMode members. */
    BNO055IMU imu;
-
-    public Servo lights = null;
+    public HardwareAccessories accessories;
+   // public Servo lights = null;
     public DcMotor  leftFrontDrive   = null, leftBackDrive=null;
     public DcMotor  rightFrontDrive  = null,rightBackDrive=null;
     Orientation             lastAngles = new Orientation();
+
     double globalAngle;
     HardwareMap hwMap           =  null;
     private ElapsedTime period  = new ElapsedTime();
@@ -141,23 +149,49 @@ public class HardwarePushbot
         tfod.loadModelFromAsset(TFOD_MODEL_ASSET, LABEL_GOLD_MINERAL, LABEL_SILVER_MINERAL);
     }
 
+//
+//    public boolean setMotors(double Left, double Right)
+//    {
+//        if(leftFrontDrive==null ||rightFrontDrive==null )
+//            return false;
+//        leftFrontDrive.setPower(Left*.7);
+//        leftBackDrive.setPower(Left*.7);
+//
+//        rightFrontDrive.setPower(Right*.7);
+//        rightBackDrive.setPower(Right*.7);
+//        return true;
+//    }
 
-    public boolean setMotors(double Left, double Right)
-    {
-        if(leftFrontDrive==null ||rightFrontDrive==null )
-            return false;
-        leftFrontDrive.setPower(Left);
-        leftBackDrive.setPower(Left);
+    public void setMotors (double lf, double lb, double rf, double rb){
+//        if (userubberbanding= true)
+//        {
+//            rf_target = rf;
+//            rb_target = rb;
+//            lf_target = lf;
+//            lb_target = lb;
+//        }
+//        else
+        {
+            leftFrontDrive.setPower(lf);
+            leftBackDrive.setPower(lb);
 
-        rightFrontDrive.setPower(Right);
-        rightBackDrive.setPower(Right);
-        return true;
+            rightFrontDrive.setPower(rf);
+            rightBackDrive.setPower(rb);
+//
+//            rightFrontMotor.setPower(rf);
+//            leftFrontMotor.setPower(lf);
+//            rightBackMotor.setPower(rb);
+//            leftBackMotor.setPower(lb);
+        }
     }
-    public void init(HardwareMap ahwMap, LinearOpMode parent) {
-        init(ahwMap,parent, true);
+
+
+
+    public void init(HardwareMap ahwMap, LinearOpMode parent, boolean initializedTfod) {
+        init(ahwMap,parent, true, initializedTfod);
     }
     /* Initialize standard Hardware interfaces */
-    public void init(HardwareMap ahwMap, LinearOpMode parent, boolean ResetGyro) {
+    public void init(HardwareMap ahwMap, LinearOpMode parent, boolean ResetGyro,boolean initializeTfod) {
         // Save reference to Hardware map
         hwMap = ahwMap;
         OpMode = parent;
@@ -202,6 +236,24 @@ public class HardwarePushbot
             rightFrontDrive = hwMap.get(DcMotor.class, "rf");
             rightBackDrive = hwMap.get(DcMotor.class, "rb");
 
+            FrontRange = hwMap.get(DistanceSensor.class, "front_range");
+            sensorTimeOfFlightFront = (Rev2mDistanceSensor)FrontRange;
+            RightRange = hwMap.get(DistanceSensor.class, "rside_range");
+            sensorTimeOfFlightRightSide = (Rev2mDistanceSensor)RightRange;
+            LeftRange = hwMap.get(DistanceSensor.class, "lside_range");
+            sensorTimeOfFlightLeftSide = (Rev2mDistanceSensor)LeftRange;
+
+            LeftServo = hwMap.get(Servo.class, "left_s");
+            RightServo = hwMap.get(Servo.class, "right_s");
+
+
+            blinkinLedDriver = hwMap.get(RevBlinkinLedDriver.class, "lights");
+            pattern = RevBlinkinLedDriver.BlinkinPattern.RAINBOW_RAINBOW_PALETTE;
+            blinkinLedDriver.setPattern(pattern);
+
+
+            accessories = new HardwareAccessories();
+            accessories.init(hwMap,parent,initializeTfod);
             // Set all motors to zero power
             leftFrontDrive.setPower(0);
             leftBackDrive.setPower(0);
@@ -214,10 +266,10 @@ public class HardwarePushbot
             rightFrontDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
             rightBackDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-            leftFrontDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-            leftBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
-            rightFrontDrive.setDirection(DcMotorSimple.Direction.FORWARD);
-            rightBackDrive.setDirection(DcMotorSimple.Direction.FORWARD);
+            leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+            leftBackDrive.setDirection(DcMotor.Direction.FORWARD); ////Wires are flipped///// //reversing/////////////
+            rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+            rightBackDrive.setDirection(DcMotor.Direction.REVERSE); /////Wires are flipped///////reversing///////
         }
 
         catch(Exception e){
@@ -234,9 +286,11 @@ public class HardwarePushbot
         ElapsedTime     runtime = new ElapsedTime();
         runtime.reset();
         while (opmode.opModeIsActive() && (runtime.seconds() < time_s)) {
-            float AngleError= (float) (getAngle()-DesiredAngle);
 
-           if(tight){
+            float currentAngle= (float) getAngle();
+            float AngleError= (float) (currentAngle-DesiredAngle);
+
+            if(tight){
                AngleError=AngleError/60f;
            }
            else{
@@ -257,19 +311,27 @@ public class HardwarePushbot
                 left /= max;
                 right /= max;
             }
-            setMotors(left,right);
+            setMotors(left,left,right,right);
             opmode.idle();
+
+            OpMode.telemetry.addData("FlowAngleTime", "currentAngle "+currentAngle+" "+left +" "+right);
+            OpMode.telemetry.update();
         }
-        setMotors(0,0);
+        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        setMotors(0,0,0,0);
     }
 
     public void FlowAngleDistanceAway(float DesiredAngle, float speed, float distance, LinearOpMode opmode)
     {
-        opmode.telemetry.log().add("FlowAngle Dist11", "starting");
+        opmode.telemetry.log().add("FlowAngle Dist", "starting");
         opmode.telemetry.update();
         int offset=0;// leftFrontDrive.getCurrentPosition();
-        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftFrontDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        leftFrontDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         //does not work for backwards yet!!!
         if(speed<0 || distance<0)
@@ -277,11 +339,9 @@ public class HardwarePushbot
             Log.wtf("Drive" , "Not supporting negative values");
         }
 
-        {
-            opmode.telemetry.addData("working on isnt %d",this.leftFrontDrive.getCurrentPosition() - offset);
-            opmode.telemetry.update();
+
             //  int loops=0;
-            while (opmode.opModeIsActive() &&(rangeSensor.getDistance(DistanceUnit.CM)>distance)) {
+            while (opmode.opModeIsActive() &&(sensorTimeOfFlightFront.getDistance(DistanceUnit.CM)>distance)) {
                 //  opmode.telemetry.log().add("Counts %d Target %d real %.1f", leftFrontDrive.getCurrentPosition(), leftFrontDrive.getCurrentPosition() - offset, distance_counts);
                 // opmode.telemetry.update();
                 float AngleError = (float) (getAngle() - DesiredAngle);
@@ -303,12 +363,20 @@ public class HardwarePushbot
                     left /= max;
                     right /= max;
                 }
-                setMotors(left, right);
+                setMotors(left,left,right,right);
                 opmode.idle();
-            }
+                opmode.telemetry.addData("FlowAngle Dist", "starting");
+                opmode.telemetry.addData("FlowAngle Dist2", "starting11"+ sensorTimeOfFlightFront.getDistance(DistanceUnit.CM));
+                opmode.telemetry.update();
 
-        }
-        setMotors(0,0);
+            }
+        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+
+        setMotors(0,0,0,0);
     }
 
     public void FlowAngleDistance(float DesiredAngle, float speed, float distance_rot, LinearOpMode opmode)
@@ -355,7 +423,7 @@ public class HardwarePushbot
                     left /= max;
                     right /= max;
                 }
-                setMotors(left, right);
+                setMotors(left,left,right, right);
                 opmode.idle();
             }
 
@@ -382,11 +450,11 @@ public class HardwarePushbot
                     left /= max;
                     right /= max;
                 }
-                setMotors(left, right);
+                setMotors(left,left,right,right);
                 opmode.idle();
             }
         }
-        setMotors(0,0);
+        setMotors(0,0,0,0);
     }
 
     public void FlowAngleStrafeTime( boolean StrafeLeft, float speed, float time_s, LinearOpMode opmode)
@@ -414,7 +482,7 @@ public class HardwarePushbot
             }
             opmode.idle();
         }
-        setMotors(0,0);
+        setMotors(0,0,0,0);
     }
     public double getAngle()
     {
@@ -472,11 +540,11 @@ public class HardwarePushbot
             }
             if(Difference<0){
                 //left turn
-                setMotors(-1*MotorSpeed,MotorSpeed);
+                setMotors(-1*MotorSpeed,-1*MotorSpeed,MotorSpeed,MotorSpeed);
             }
             else{
                 //right turn
-                setMotors(MotorSpeed, -1*MotorSpeed);
+                setMotors(MotorSpeed,MotorSpeed, -1*MotorSpeed,-1*MotorSpeed);
             }
         }while(Math.abs(Difference)>2&&!OpMode.isStopRequested()){
             Difference=getAngle()-targetangle;
@@ -488,16 +556,28 @@ public class HardwarePushbot
             }
             if(Difference<0){
                 //left turn
-                setMotors(-1*MotorSpeed,MotorSpeed);
+                setMotors(-1*MotorSpeed,-1*MotorSpeed,MotorSpeed,MotorSpeed);
             }
             else{
                 //right turn
-                setMotors(MotorSpeed, -1*MotorSpeed);
+                setMotors(MotorSpeed,MotorSpeed ,-1*MotorSpeed,-1*MotorSpeed);
             }
         }
+        leftFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightBackDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightFrontDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        setMotors(0,0,0,0);
+
         OpMode.telemetry.addData("turn to angle", "ending"+Difference+" "+getAngle()+" "+targetangle);
         OpMode.telemetry.update();
-        setMotors(0,0);
+
+    }
+
+    public void setSevos(float servoPosition) {
+        this.LeftServo.setPosition(servoPosition);
+        this.RightServo.setPosition(servoPosition);
     }
 }
 

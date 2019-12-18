@@ -32,7 +32,11 @@ package org.firstinspires.ftc.teamcode.Skystone.RealRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 /**
  * This OpMode uses the common Pushbot hardware class to define the devices on the robot.
@@ -56,6 +60,10 @@ public class SkyStoneTeleOp extends LinearOpMode {
     HardwarePushbot robot           = new HardwarePushbot();   // Use a Pushbot's hardware
     double          clawOffset      = 0;                       // Servo mid position
     final double    CLAW_SPEED      = 0.02 ;                   // sets rate to move servo
+    boolean left_trigger_down=false,right_trigger_down=false;
+    double compass_ideal_heading=-1;
+    public static final double CORRECTION_SCALE = 200.0;
+    double left, right, drive, turn, max;
 
     @Override
     public void runOpMode() {
@@ -68,10 +76,10 @@ public class SkyStoneTeleOp extends LinearOpMode {
         /* Initialize the hardware variables.
          * The init() method of the hardware class does all the work here
          */
-        robot.init(hardwareMap, this);
+        robot.init(hardwareMap, this,false,false);
 
         // Send telemetry message to signify robot waiting;
-        telemetry.addData("Say", "Hello Driver");    //
+        telemetry.addData("go", "ready");    //
         telemetry.update();
 
         // Wait for the game to start (driver presses PLAY)
@@ -79,24 +87,6 @@ public class SkyStoneTeleOp extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
-
-            // Run wheels in POV mode (note: The joystick goes negative when pushed forwards, so negate it)
-            // In this mode the Left stick moves the robot fwd and back, the Right stick turns left and right.
-            // This way it's also easy to just drive straight, or just turn.
-            drive = -gamepad1.left_stick_y;
-            turn  =  gamepad1.right_stick_x;
-
-            // Combine drive and turn for blended motion.
-            left  = drive + turn;
-            right = drive - turn;
-
-            // Normalize the values so neither exceed +/- 1.0
-            max = Math.max(Math.abs(left), Math.abs(right));
-            if (max > 1.0)
-            {
-                left /= max;
-                right /= max;
-            }
 
             // Output the safe vales to the motor drives.
 //            robot.leftDrive.setPower(left);
@@ -115,17 +105,45 @@ public class SkyStoneTeleOp extends LinearOpMode {
 //
 //            //Use gamepad buttons to move arm up (Y) and down (A)
            if (gamepad1.y)
-                robot.TurnToAngle(-90,1);
+                robot.rightBackDrive.setDirection(DcMotorSimple.Direction.FORWARD);
             else if (gamepad1.a)
-             robot.TurnToAngle(90,1);
-            if (gamepad1.b)
-                robot.FlowAngleTime(90,.2f,4,this);
-            if (gamepad1.x)
-                robot.FlowAngleTime(90,-.2f,4,this);
-            if (gamepad1.right_bumper)
-                robot.FlowAngleStrafeTime(false,.5f,4,this);
-            if (gamepad1.left_bumper)
-                robot.FlowAngleStrafeTime(true,.5f,4,this);
+               robot.rightBackDrive.setDirection(DcMotorSimple.Direction.REVERSE);
+
+            if(gamepad2.right_trigger>0) {
+                telemetry.addData("Servo Position", "0");    //
+                telemetry.update();
+                robot.LeftServo.setPosition(1);
+                robot.RightServo.setPosition(0);
+            }
+            else if(gamepad2.left_trigger>0) {
+                telemetry.addData("Servo Position", "1");    //
+                telemetry.update();
+                robot.LeftServo.setPosition(0);
+                robot.RightServo.setPosition(1);
+            }
+            else{
+                telemetry.addData("front", "distance"+robot.sensorTimeOfFlightFront.getDistance(DistanceUnit.CM));    //
+                telemetry.addData("right", "distance"+robot.sensorTimeOfFlightRightSide.getDistance(DistanceUnit.CM));    //
+                telemetry.addData("left", "distance"+robot.sensorTimeOfFlightLeftSide.getDistance(DistanceUnit.CM));    //
+            }
+
+            if(gamepad2.left_stick_y>.1){
+                robot.accessories.ArmUpDown.setPower(gamepad2.left_stick_y/2f);
+            }
+            else if(gamepad2.left_stick_y<-.1){
+                robot.accessories.ArmUpDown.setPower(gamepad2.left_stick_y/2f);
+            }
+            else{
+                robot.accessories.ArmUpDown.setPower(0);
+            }
+//            if (gamepad1.b)
+//                robot.FlowAngleTime(90,.2f,4,this);
+//            if (gamepad1.x)
+//                robot.FlowAngleTime(90,-.2f,4,this);
+//            if (gamepad1.right_bumper)
+//                robot.FlowAngleStrafeTime(false,.5f,4,this);
+//            if (gamepad1.left_bumper)
+//                robot.FlowAngleStrafeTime(true,.5f,4,this);
 //            else
 //                robot.leftArm.setPower(0.0);
 
@@ -134,6 +152,91 @@ public class SkyStoneTeleOp extends LinearOpMode {
 //            telemetry.update();
 
             // Pace this loop so jaw action is reasonable speed.
+
+            Driving();
+
+//            robot.setMotors(left,left,right,right);
+            telemetry.addData("armUpDown", "dd"+robot.accessories.ArmUpDown.getCurrentPosition());
+            telemetry.addData("arm sensors", "dd"+robot.accessories.ArmUp.isPressed()+" down "+robot.accessories.ArmDowm.isPressed());    ////
+            telemetry.update();
         }
+    }
+    private void Driving() {
+        if(gamepad1.left_trigger>.5)//crab left
+        {
+            crabbing_right();
+        }
+        else if(gamepad1.right_trigger>.5)//crab right
+        {
+            crabbing_left();
+
+        }
+        else
+        {
+            normal_driving();
+        }//done driving
+    }
+    private void crabbing_right() {
+        if(right_trigger_down==false)
+        {
+            compass_ideal_heading=robot.getAngle();
+        }
+        //scale angle difference
+        double angle_difference=(compass_ideal_heading-robot.getAngle())/ CORRECTION_SCALE;
+        robot.leftBackDrive.setPower(.7-angle_difference);
+        robot.leftFrontDrive.setPower(-.7-angle_difference);
+        robot.rightBackDrive.setPower(-.7+angle_difference);
+        robot.rightFrontDrive.setPower(.7+angle_difference);
+        left_trigger_down=false;
+        right_trigger_down=true;
+        telemetry.addData("RIGHT !!!!! compass_ideal_heading", "right trigger hit",compass_ideal_heading,robot.getAngle());
+        telemetry.update();
+    }
+
+    private void crabbing_left() {
+        if(left_trigger_down==false)
+        {
+            compass_ideal_heading=robot.getAngle();
+        }
+        double angle_difference=(compass_ideal_heading-robot.getAngle())/CORRECTION_SCALE;
+        robot.leftBackDrive.setPower(-.7-angle_difference);
+        robot.leftFrontDrive.setPower(.7-angle_difference);
+        robot.rightBackDrive.setPower(.7+angle_difference);
+        robot.rightFrontDrive.setPower(-.7+angle_difference);
+        left_trigger_down=true;
+        right_trigger_down=false;
+        telemetry.addData("LEFT !!!!  compass_ideal_heading", "%.2f",angle_difference);
+        telemetry.update();
+    }
+
+    private void normal_driving() {
+        //not crabbing - lets drive (no stick means stop)
+        left_trigger_down=false;
+        right_trigger_down=false;
+
+        drive = gamepad1.left_stick_y*-1;
+        turn  =  .5*gamepad1.right_stick_x;
+
+        if(gamepad1.left_stick_y>0){
+            turn*=-.25;
+        }
+
+//If driving backwards, we change the direction of the turns
+        if(gamepad1.left_stick_y<0){
+        }
+        // Combine drive and turn for blended motion.
+        left  = drive+turn;
+        right = drive-turn;
+
+        // Normalize the values so neither exceed +/- 1.0
+        max = Math.max(Math.abs(left), Math.abs(right));
+        if (max > 1.0)
+        {
+            left /= max;
+            right /= max;
+        }
+
+        // Output the safe vales to the motor drives.
+        robot.setMotors(left,left,right,right);
     }
 }
